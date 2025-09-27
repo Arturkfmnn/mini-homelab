@@ -1,0 +1,16 @@
+{
+	"image": "ubuntu:rolling",
+	"postCreateCommand": "bash .devcontainer/install-dependencies.sh",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"redhat.vscode-yaml",
+				"Gruntfuggly.todo-tree",
+				"shardulm94.trailing-spaces"
+			]
+		}
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+	]
+}
