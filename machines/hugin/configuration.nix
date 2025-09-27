@@ -12,13 +12,41 @@
 
   nix = {
     package = pkgs.nixVersions.stable;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
   };
+
+  nixpkgs.config.allowUnfree = true;
+
+  nixpkgs.overlays = [
+    (final: prev: {
+      jellyfin-web = prev.jellyfin-web.overrideAttrs (finalAttrs: previousAttrs: {
+        installPhase = ''
+          runHook preInstall
+
+          # this is the important line
+          sed -i "s#</head>#<script src=\"configurationpage?name=skip-intro-button.js\"></script></head>#" dist/index.html
+
+          mkdir -p $out/share
+          cp -a dist $out/share/jellyfin-web
+
+          runHook postInstall
+        '';
+      });
+    })
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  hardware.cpu.intel.updateMicrocode = true;
 
-  networking.hostName = "munin"; # Define your hostname.
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.kernelParams = [ "i915.enable_guc=2" ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  networking.hostName = "hugin"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
@@ -40,6 +68,37 @@
 
   # Enable the X11 windowing system.
   # services.xserver.enable = true;
+
+  systemd.services.jellyfin.environment.LIBVA_DRIVER_NAME = "iHD"; # or i965, see below
+  environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; }; # ditto
+
+  # Intel Hardware Acceleration config
+  hardware = {
+    enableAllFirmware = true;
+    intel-gpu-tools.enable = true;
+    graphics = {
+      enable = true;
+      extraPackages = with pkgs; [
+        intel-ocl
+        intel-media-driver
+        intel-compute-runtime
+        vpl-gpu-rt # QSV on 11th gen or newer
+      ];
+    };
+  };
+
+
+  # Enable Jellyfin media server
+  services.jellyfin.enable = true;
+
+  # NFS client and mount for media
+  services.rpcbind.enable = true; # needed for NFS
+  fileSystems."/mnt/media" = {
+    # Replace the device value with your NFS server:path
+    device = "truenas.internal:/mnt/epyc/Medien";
+    fsType = "nfs";
+    options = [ "rw" "vers=4" "noatime" ];
+  };
 
   # Fixes for longhorn
   systemd.tmpfiles.rules = [
@@ -90,6 +149,10 @@
     htop
     cifs-utils
     nfs-utils
+    jellyfin
+    jellyfin-web
+    jellyfin-ffmpeg
+    libva-utils
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -103,7 +166,14 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings.PermitRootLogin = "yes";
+    settings.PasswordAuthentication = false;
+    settings.KbdInteractiveAuthentication = false;
+  };
+
+  users.users.root.openssh.authorizedKeys.keys = [ "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDHBPoCDAyJXU/o9QUK52/4bHP+y5STiw6i5KnGJo7LcyubljHPPiyHRb+JwtZ2unCgZZ/DLsluEtqfKqmUEc3uaGISQvpac4i392bS0S89yJDYl2qfZ6/vpTURSGfXkjvYinc4iY0OpkCuiIqv/t5rYL8SigQKUtxZsEWUO3gpLk7b6I611UiElnhPAYL1GZDRHETT8EapoYLxP6h3Wn6xLQ8iS9xK2Mw+DRtuJSZRPrG1sjmLEUt9vCUWigDw/+iLdQ/rlUPEXgdfQ91wnhzaurVkvXsZBBCGEm1mha84zxYqFxbe3Nd1Sghx/gdxWN8KvOUe1EYMBCO1CRg20AaYBj9DNhLLGSYmV91u7ypqv7LbdzJnE2LNE+xCG5+g80jTqIHZ6QBR+p7kWHd6SHV1+tiqpzjD6ON1rCmGldOdfbBsJx43TWm1lxm5bck+4rordwh3rfwVud7B2Y8tkXIxY/j/sbtyiQqhmzcmhgk3WnelPnqt87615ryugUaBalv5P0WhXitBFlxK7xVP1Aa71W1ykIwRQdeu/nILZCLDn4CCXwb9LewK7Y8rbr0TOJ0wfLZdX/5JZKr5F09/T55RNT/cfnH6lsIlCsWQnmTvdrbObDco6ZIKRIDDMyyJFeeXUSVGNtoIsP/2/4IYqt6ET3yC9TlD4QxPeaCKKFX5aw== artur@ak-aeon" ];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

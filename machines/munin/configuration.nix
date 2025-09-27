@@ -12,13 +12,16 @@
 
   nix = {
     package = pkgs.nixVersions.stable;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
   };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "hugin"; # Define your hostname.
+  networking.hostName = "munin"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
@@ -103,7 +106,15 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings.PermitRootLogin = "yes";
+    settings.PasswordAuthentication = false;
+    settings.KbdInteractiveAuthentication = false;
+  };
+
+  users.users.root.openssh.authorizedKeys.keys = [ "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDHBPoCDAyJXU/o9QUK52/4bHP+y5STiw6i5KnGJo7LcyubljHPPiyHRb+JwtZ2unCgZZ/DLsluEtqfKqmUEc3uaGISQvpac4i392bS0S89yJDYl2qfZ6/vpTURSGfXkjvYinc4iY0OpkCuiIqv/t5rYL8SigQKUtxZsEWUO3gpLk7b6I611UiElnhPAYL1GZDRHETT8EapoYLxP6h3Wn6xLQ8iS9xK2Mw+DRtuJSZRPrG1sjmLEUt9vCUWigDw/+iLdQ/rlUPEXgdfQ91wnhzaurVkvXsZBBCGEm1mha84zxYqFxbe3Nd1Sghx/gdxWN8KvOUe1EYMBCO1CRg20AaYBj9DNhLLGSYmV91u7ypqv7LbdzJnE2LNE+xCG5+g80jTqIHZ6QBR+p7kWHd6SHV1+tiqpzjD6ON1rCmGldOdfbBsJx43TWm1lxm5bck+4rordwh3rfwVud7B2Y8tkXIxY/j/sbtyiQqhmzcmhgk3WnelPnqt87615ryugUaBalv5P0WhXitBFlxK7xVP1Aa71W1ykIwRQdeu/nILZCLDn4CCXwb9LewK7Y8rbr0TOJ0wfLZdX/5JZKr5F09/T55RNT/cfnH6lsIlCsWQnmTvdrbObDco6ZIKRIDDMyyJFeeXUSVGNtoIsP/2/4IYqt6ET3yC9TlD4QxPeaCKKFX5aw== artur@ak-aeon" ];
+
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
