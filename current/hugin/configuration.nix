@@ -50,27 +50,6 @@
   # Configure keymap in X11
   # services.xserver.xkb.layout = "us";
   # services.xserver.xkb.options = "eurosign:e,caps:escape";
-  services.k3s = {
-    enable = true;
-    role = "server";
-    # tokenFile = "/var/lib/rancher/k3s/server/token";
-    token = "KedjC7m3tXf5Td79";
-    extraFlags = toString ([
-	    "--write-kubeconfig-mode \"0644\""
-	    "--cluster-init"
-	    "--disable servicelb"
-	    "--disable traefik"
-	    "--disable local-storage"
-    ] ++ (if config.networking.hostName == "hugin" then [] else [
-	      "--server https://hugin:6443"
-    ]));
-    clusterInit = (config.networking.hostName == "hugin");
-  };
-
-  services.openiscsi = {
-    enable = true;
-    name = "iqn.2016-04.com.open-iscsi:${config.networking.hostName}";
-  };
 
   # Enable CUPS to print documents.
   # services.printing.enable = true;
@@ -108,7 +87,6 @@
     wget
     git
     curl
-    k3s
     htop
     cifs-utils
     nfs-utils
