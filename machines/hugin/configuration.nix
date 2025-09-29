@@ -93,7 +93,7 @@
 
   # NFS client and mount for media
   services.rpcbind.enable = true; # needed for NFS
-  fileSystems."/mnt/media" = {
+  fileSystems."/media/pool" = {
     # Replace the device value with your NFS server:path
     device = "truenas.internal:/mnt/epyc/Medien";
     fsType = "nfs";
