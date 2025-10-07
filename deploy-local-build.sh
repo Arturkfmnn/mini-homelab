@@ -17,9 +17,10 @@ fi
 
 echo "Building $MACHINE configuration locally..."
 
-# Build the system configuration locally
+# Build the system configuration locally with custom result symlink
 RESULT=$(nix --extra-experimental-features nix-command --extra-experimental-features flakes \
-    build .#nixosConfigurations.$MACHINE.config.system.build.toplevel --print-out-paths)
+    build .#nixosConfigurations.$MACHINE.config.system.build.toplevel \
+    --out-link result-$MACHINE --print-out-paths)
 
 echo "Built system: $RESULT"
 
