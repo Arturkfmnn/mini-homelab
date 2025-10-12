@@ -19,23 +19,26 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  nixpkgs.overlays = [
-    (final: prev: {
-      jellyfin-web = prev.jellyfin-web.overrideAttrs (finalAttrs: previousAttrs: {
-        installPhase = ''
-          runHook preInstall
+  # https://wiki.nixos.org/wiki/Jellyfin#Intro_Skipper_plugin
+  # The below no longer seems to required, and if the latest version from https://github.com/intro-skipper/intro-skipper is used, then it should just work. Tested with jellyfin web, jellyfin media player and jellyfin on Android TV.
 
-          # this is the important line
-          sed -i "s#</head>#<script src=\"configurationpage?name=skip-intro-button.js\"></script></head>#" dist/index.html
+  # nixpkgs.overlays = [
+  #   (final: prev: {
+  #     jellyfin-web = prev.jellyfin-web.overrideAttrs (finalAttrs: previousAttrs: {
+  #       installPhase = ''
+  #         runHook preInstall
 
-          mkdir -p $out/share
-          cp -a dist $out/share/jellyfin-web
+  #         # this is the important line
+  #         sed -i "s#</head>#<script src=\"configurationpage?name=skip-intro-button.js\"></script></head>#" dist/index.html
 
-          runHook postInstall
-        '';
-      });
-    })
-  ];
+  #         mkdir -p $out/share
+  #         cp -a dist $out/share/jellyfin-web
+
+  #         runHook postInstall
+  #       '';
+  #     });
+  #   })
+  # ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
