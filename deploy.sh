@@ -34,7 +34,7 @@ echo "Building configuration locally and deploying to remote host..."
 # Build locally, deploy remotely (without --build-host to avoid localhost SSH issues)
 nix --extra-experimental-features nix-command --extra-experimental-features flakes \
     run nixpkgs#nixos-rebuild -- switch \
-    --flake .#$MACHINE \
+	--flake .#$MACHINE \
     --target-host $TARGET_HOST
 
 echo "✅ Deployment of $MACHINE to $TARGET_HOST completed!"
